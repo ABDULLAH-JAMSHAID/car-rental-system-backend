@@ -2,7 +2,6 @@ package Utill;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,76 +12,58 @@ public class JsonResponse {
     /**
      * Private helper to write JSON response
      */
-    private static void write(HttpServletResponse resp, int status, boolean success, Object body) throws IOException {
+    private static void write(HttpServletResponse resp, int status, boolean success, Map<String, Object> body) throws IOException {
         resp.setStatus(status);
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", status);
-        responseBody.put("success", success);
-
-        if (success) {
-            responseBody.put("data", body);
-        } else {
-            responseBody.put("error", body);
-        }
-
-        resp.getWriter().write(gson.toJson(responseBody));
+        body.put("status", status);
+        body.put("success", success);
+        resp.getWriter().write(gson.toJson(body));
     }
 
     /**
-     * Success (200 OK) response with data
+     * 200 OK
      */
-    public static void ok(HttpServletResponse resp, Object body) throws IOException {
+    public static void ok(HttpServletResponse resp, Object data) throws IOException {
+        Map<String, Object> body = new HashMap<>();
+        body.put("data", data);
         write(resp, HttpServletResponse.SC_OK, true, body);
     }
 
     /**
-     * Success (201 Created) response with data
+     * 201 Created (with message)
      */
-    public static void created(HttpServletResponse resp, Object body) throws IOException {
+    public static void created(HttpServletResponse resp,Object data) throws IOException {
+        Map<String, Object> body = new HashMap<>();
+        body.put("data", data);
         write(resp, HttpServletResponse.SC_CREATED, true, body);
     }
 
     /**
-     * Error response with custom status code
+     * Error (custom status)
      */
     public static void error(HttpServletResponse resp, int status, String message) throws IOException {
-        write(resp, status, false, message);
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", message);
+        write(resp, status, false, body);
     }
 
-    /**
-     * Shortcut for 400 Bad Request
-     */
     public static void badRequest(HttpServletResponse resp, String message) throws IOException {
         error(resp, HttpServletResponse.SC_BAD_REQUEST, message);
     }
 
-    /**
-     * Shortcut for 401 Unauthorized
-     */
     public static void unauthorized(HttpServletResponse resp, String message) throws IOException {
         error(resp, HttpServletResponse.SC_UNAUTHORIZED, message);
     }
 
-    /**
-     * Shortcut for 403 Forbidden
-     */
     public static void forbidden(HttpServletResponse resp, String message) throws IOException {
         error(resp, HttpServletResponse.SC_FORBIDDEN, message);
     }
 
-    /**
-     * Shortcut for 404 Not Found
-     */
     public static void notFound(HttpServletResponse resp, String message) throws IOException {
         error(resp, HttpServletResponse.SC_NOT_FOUND, message);
     }
 
-    /**
-     * Shortcut for 500 Internal Server Error
-     */
     public static void serverError(HttpServletResponse resp, String message) throws IOException {
         error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
     }

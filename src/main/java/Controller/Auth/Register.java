@@ -1,45 +1,45 @@
 package Controller.Auth;
 
+
+import DTO.RegisterRequestDTO;
+import DTO.RegisterResponseDTO;
 import Handler.AppException;
-import Model.User;
 import Service.AuthService;
 import Utill.JsonResponse;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-@WebServlet(name = "Register", urlPatterns = "api/register")
+@WebServlet(name = "Register", urlPatterns = "/api/register")
 public class Register extends BaseServlet {
 
-    private  final Gson gson=new Gson();
+    private final ObjectMapper mapper=new ObjectMapper();
     private final AuthService authService=new AuthService();
 
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        try(BufferedReader reader=req.getReader()){
 
-            User user=gson.fromJson(reader, User.class);
+        RegisterRequestDTO body=mapper.readValue(req.getReader(), RegisterRequestDTO.class);
 
-            String fullName = user.getFull_name();
-            String email = user.getEmail();
-            String password = user.getPassword();
-            String phone = user.getPhone();
-
-            if (fullName ==null || email == null || password== null || phone==null){
-                JsonResponse.badRequest(resp,"Missing Fields");
-                return;
-            }
-            boolean ok=authService.saveUser(fullName,email,password,phone);
-            if (ok){
-                JsonResponse.ok(resp,"User Registered Successfully. Please Verify Your Email" );
-            }
-        } catch (MessagingException e) {
-            throw  new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to send verification email");
+        if (body.getFull_name()==null || body.getFull_name().isEmpty() ||body.getEmail()==null || body.getEmail().isEmpty() || body.getPassword()==null || body.getPassword().isEmpty()||
+        body.getPhone()==null || body.getPhone().isEmpty()){
+            JsonResponse.badRequest(resp,"Missing Fields");
+            return;
         }
+
+
+        try {
+            RegisterResponseDTO responseDTO=authService.saveUser(body.getFull_name(), body.getEmail(), body.getPassword(), body.getPhone());
+
+            JsonResponse.created(resp,responseDTO);
+        } catch (MessagingException e) {
+            throw new AppException(HttpServletResponse.SC_SERVICE_UNAVAILABLE,"Failed to send verification OTP");
+        }
+
 
     }
 }

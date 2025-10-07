@@ -8,8 +8,8 @@ import java.util.Properties;
 
 public class MailService {
 
-    private final String username = "your-email@gmail.com"; // sender email
-    private final String password = "your-app-password";   // app-specific password (NOT Gmail password!)
+    private final String email = "abdullahjamshaid61@gmail.com"; // sender email
+    private final String password = "wfyncfhfmlvoxkxo";   // app-specific password (NOT Gmail password!)
 
     private final Session session;
 
@@ -25,9 +25,11 @@ public class MailService {
         session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
+                return new PasswordAuthentication(email, password);
             }
+
         });
+        session.setDebug(true);
     }
 
     /**
@@ -36,7 +38,7 @@ public class MailService {
     public void sendMail(String toEmail, String subject, String body) throws MessagingException {
         // Create message
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(username));
+        message.setFrom(new InternetAddress(email));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject(subject);
         message.setText(body);
