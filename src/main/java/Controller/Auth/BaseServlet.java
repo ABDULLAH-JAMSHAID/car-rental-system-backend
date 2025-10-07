@@ -1,21 +1,27 @@
 package Controller.Auth;
 
 
+import Annotation.RequiresPermission;
+import Enums.Permissions;
 import Handler.AppException;
+import Repository.AuthRepository;
 import Utill.JsonResponse;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public abstract class BaseServlet extends HttpServlet {
 
-    private final UserRepository userRepository = new UserRepository();
+    private final AuthRepository authRepository=new AuthRepository();
+
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) {
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             // Method name banani (doGet, doPost, etc.)
             String methodName = "do" + req.getMethod().substring(0, 1).toUpperCase()
@@ -31,7 +37,7 @@ public abstract class BaseServlet extends HttpServlet {
             // 🔹 Agar @RequiresPermission annotation lagi hai
             if (method.isAnnotationPresent(RequiresPermission.class)) {
                 RequiresPermission annotation = method.getAnnotation(RequiresPermission.class);
-                Permission requiredPermission = annotation.value();
+                Permissions requiredPermission = annotation.value();
 
                 Claims claims = (Claims) req.getAttribute("claims");
                 if (claims == null) {
@@ -39,15 +45,15 @@ public abstract class BaseServlet extends HttpServlet {
                     return;
                 }
 
-                Number uid = (Number) claims.get("uid");
-                if (uid == null) {
+                Number user_id = (Number) claims.get("user_id");
+                if (user_id == null) {
                     JsonResponse.unauthorized(resp, "User ID not found in claims.");
                     return;
                 }
 
-                int userId = uid.intValue();
+                int userId = user_id.intValue();
 
-                if (userRepository.userHasPermission(userId, requiredPermission)) {
+                if (authRepository.userHasPermission(userId, requiredPermission)) {
                     method.invoke(this, req, resp);
                 } else {
                     JsonResponse.forbidden(resp, "Access Denied: You don't have permission to access this resource.");

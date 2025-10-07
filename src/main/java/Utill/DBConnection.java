@@ -1,8 +1,7 @@
-package com.ums.app.util;
+package Utill;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import javax.sql.DataSource;
 import java.util.Properties;
 
@@ -13,7 +12,7 @@ public class DBConnection {
     static {
         try {
             Properties props = new Properties();
-            props.load(DBConnection.class.getClassLoader().getResourceAsStream("application.properties"));
+            props.load(DBConnection.class.getClassLoader().getResourceAsStream("resources.properties"));
 
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(props.getProperty("db.url"));
@@ -25,6 +24,7 @@ public class DBConnection {
             config.setPoolName("AppHikariCP");
 
             db = new HikariDataSource(config);
+            System.out.println("Database connection pool initialized.");
 
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
