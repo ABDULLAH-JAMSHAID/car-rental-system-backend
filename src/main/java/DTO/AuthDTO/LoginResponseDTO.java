@@ -1,4 +1,4 @@
-package DTO;
+package DTO.AuthDTO;
 
 import java.util.List;
 

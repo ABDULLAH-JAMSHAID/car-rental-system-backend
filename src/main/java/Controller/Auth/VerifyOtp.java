@@ -1,12 +1,11 @@
 package Controller.Auth;
 
-import DTO.VerifyOtpDTO;
+import DTO.AuthDTO.VerifyOtpDTO;
 import Service.AuthService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 

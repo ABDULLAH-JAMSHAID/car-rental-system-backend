@@ -1,7 +1,7 @@
 package Controller.Auth;
 
-import DTO.LoginRequestDTO;
-import DTO.LoginResponseDTO;
+import DTO.AuthDTO.LoginRequestDTO;
+import DTO.AuthDTO.LoginResponseDTO;
 import Service.AuthService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
