@@ -1,47 +1,44 @@
 package Utill;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JsonResponse {
-    private static final Gson gson = new Gson();
 
-    /**
-     * Private helper to write JSON response
-     */
+    // Use a single preconfigured ObjectMapper
+    private static final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule()) // support for LocalDate, LocalDateTime, etc.
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO format instead of timestamps
+
     private static void write(HttpServletResponse resp, int status, boolean success, Map<String, Object> body) throws IOException {
         resp.setStatus(status);
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         body.put("status", status);
         body.put("success", success);
-        resp.getWriter().write(gson.toJson(body));
+
+        // ✅ serialize with Jackson (no reflection issues)
+        mapper.writeValue(resp.getWriter(), body);
     }
 
-    /**
-     * 200 OK
-     */
     public static void ok(HttpServletResponse resp, Object data) throws IOException {
         Map<String, Object> body = new HashMap<>();
         body.put("data", data);
         write(resp, HttpServletResponse.SC_OK, true, body);
     }
 
-    /**
-     * 201 Created (with message)
-     */
-    public static void created(HttpServletResponse resp,Object data) throws IOException {
+    public static void created(HttpServletResponse resp, Object data) throws IOException {
         Map<String, Object> body = new HashMap<>();
         body.put("data", data);
         write(resp, HttpServletResponse.SC_CREATED, true, body);
     }
 
-    /**
-     * Error (custom status)
-     */
     public static void error(HttpServletResponse resp, int status, String message) throws IOException {
         Map<String, Object> body = new HashMap<>();
         body.put("message", message);

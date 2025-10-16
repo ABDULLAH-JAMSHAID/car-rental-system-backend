@@ -1,15 +1,14 @@
 package Controller.Auth;
 
 
-import DTO.RegisterRequestDTO;
-import DTO.RegisterResponseDTO;
+import DTO.AuthDTO.RegisterRequestDTO;
+import DTO.AuthDTO.RegisterResponseDTO;
 import Handler.AppException;
 import Service.AuthService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

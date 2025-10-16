@@ -30,7 +30,8 @@ public class AuthFilter implements Filter {
                 || path.endsWith("/api/refresh")
                 || path.endsWith("/api/verify-otp")
                 || path.endsWith("/api/logout")
-                ) {
+                || path.endsWith("/api/resend-otp")|| path.endsWith("/api/addCar")
+                || path.endsWith("/api/updateCar/*")) {
             chain.doFilter(request, response);
             return;
         }
@@ -56,7 +57,7 @@ public class AuthFilter implements Filter {
             Claims claims = jws.getBody();
             req.setAttribute("claims", claims);
 
-            // Bas token aur claims set karna hai, permission check BaseServlet karega
+          //   Bas token aur claims set karna hai, permission check BaseServlet karega
             chain.doFilter(request, response);
 
         } catch (JwtException e) {

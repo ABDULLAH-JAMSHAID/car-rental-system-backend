@@ -1,8 +1,8 @@
 package Service;
 
 
-import DTO.LoginResponseDTO;
-import DTO.RegisterResponseDTO;
+import DTO.AuthDTO.LoginResponseDTO;
+import DTO.AuthDTO.RegisterResponseDTO;
 import Handler.AppException;
 import Model.OtpRecord;
 import Model.User;
@@ -110,5 +110,25 @@ public class AuthService {
         String refreshToken = Utill.JwtUtil.generateRefreshToken(user.getEmail());
 
         return new LoginResponseDTO("Login Successful",user.getId(), user.getFull_name(), user.getEmail(), accessToken, 900000, refreshToken, 604800000,Role,permissions);
+    }
+
+    public boolean resendOtp(String email) throws MessagingException {
+
+        User user=authRepository.find(email,null);
+        if (user==null){
+            throw new AppException(HttpServletResponse.SC_NOT_FOUND,"User Not Found");
+        }
+        String otp= OtpUtil.generateOtp();
+        LocalDateTime expiry=LocalDateTime.now().plusMinutes(5);
+
+        boolean otpSaved=authRepository.saveOtp(user.getId(),otp,expiry);
+
+        if (!otpSaved){
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to save OTP");
+        }
+        // Here, you would typically send the OTP to the user's email or phone number.
+        mailService.sendOtp(email,otp);
+        return true;
+
     }
 }

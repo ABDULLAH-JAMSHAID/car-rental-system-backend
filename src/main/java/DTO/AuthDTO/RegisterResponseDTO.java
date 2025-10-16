@@ -1,4 +1,4 @@
-package DTO;
+package DTO.AuthDTO;
 
 public class RegisterResponseDTO {
     private Integer userId;
