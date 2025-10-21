@@ -38,8 +38,7 @@ public class BookRental extends HttpServlet {
         try {
             rentalService.bookRental(rental);
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+         }
 
         // Send success response
             JsonResponse.ok(resp, "Car booked successfully!");

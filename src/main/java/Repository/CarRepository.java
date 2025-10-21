@@ -1,19 +1,21 @@
 package Repository;
 
+import DTO.CarDTO.CarDTO;
 import DTO.CarDTO.CarRequestDTO;
+import DTO.CarDTO.ReviewDTO;
 import Enums.CarStatus;
 import Handler.AppException;
 import Utill.DBConnection;
 import Utill.sql;
 import jakarta.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
 
 public class CarRepository {
 
@@ -199,5 +201,162 @@ public class CarRepository {
         }
     }
 
+    public List<CarDTO> searchAvailableCars(Timestamp pickupDate, Timestamp dropoffDate,
+                                            String carType, double minPrice, double maxPrice) throws AppException {
+
+        Map<Integer, CarDTO> carMap = new LinkedHashMap<>();
+
+        try (Connection con = ds.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.SEARCH_CARS_QUERY)) {
+
+            ps.setTimestamp(1, pickupDate);
+            ps.setTimestamp(2, dropoffDate);
+            ps.setString(3, carType);
+            ps.setString(4, carType);
+            ps.setDouble(5, minPrice);
+            ps.setDouble(6, maxPrice);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int carId = rs.getInt("car_id");
+
+                CarDTO car = carMap.getOrDefault(carId, new CarDTO());
+                if (car.getId() == 0) {
+                    car.setId(carId);
+                    car.setRegistrationNo(rs.getString("registration_no"));
+                    car.setName(rs.getString("name"));
+                    car.setType(rs.getString("type"));
+                    car.setCapacity(rs.getInt("capacity"));
+                    car.setFuelCapacity(rs.getString("fuel_capacity"));
+                    car.setTransmission(rs.getString("transmission"));
+                    car.setDescription(rs.getString("description"));
+                    car.setPricePerDay(rs.getDouble("price_per_day"));
+                    car.setCreatedAt(rs.getTimestamp("created_at"));
+                    car.setStatus(rs.getString("status"));
+                    car.setImageUrls(new ArrayList<>());
+                    car.setReviews(new ArrayList<>());
+                    carMap.put(carId, car);
+                }
+
+                // Add image (avoid duplicates)
+                String imageUrl = rs.getString("image_url");
+                if (imageUrl != null && !car.getImageUrls().contains(imageUrl)) {
+                    car.getImageUrls().add(imageUrl);
+                }
+
+                // Add review
+                int rating = rs.getInt("rating");
+                if (rating > 0) {
+                    ReviewDTO review = new ReviewDTO();
+                    review.setRating(rating);
+                    review.setComment(rs.getString("comment"));
+                    review.setReviewerName(rs.getString("reviewer_name"));
+                    car.getReviews().add(review);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database error during car search: " + e.getMessage());
+        }
+
+        return new ArrayList<>(carMap.values());
+    }
+
+
+
+    public boolean addFavorite(int userId, int carId) {
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.INSERT_FAVORITE_SQL)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, carId);
+            int rows=ps.executeUpdate();
+            if (rows>0){
+                return true;
+            }
+
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                throw new AppException(HttpServletResponse.SC_CONFLICT,"This car is already in favorites.");
+            }
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to add favorite: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean removeFavorite(int userId, int carId) {
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.DELETE_FAVORITE_SQL)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, carId);
+
+            int rows = ps.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to remove favorite: " + e.getMessage());
+        }
+    }
+
+
+    public List<CarDTO> getFavoriteCarsByUser(int userId) {
+        Map<Integer, CarDTO> carMap = new LinkedHashMap<>();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.GET_FAVORITE_CARS_BY_USER)) {
+
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int carId = rs.getInt("car_id");
+
+                CarDTO car = carMap.getOrDefault(carId, new CarDTO());
+                if (car.getId() == 0) {
+                    car.setId(carId);
+                    car.setRegistrationNo(rs.getString("registration_no"));
+                    car.setName(rs.getString("name"));
+                    car.setType(rs.getString("type"));
+                    car.setCapacity(rs.getInt("capacity"));
+                    car.setFuelCapacity(rs.getString("fuel_capacity"));
+                    car.setTransmission(rs.getString("transmission"));
+                    car.setDescription(rs.getString("description"));
+                    car.setPricePerDay(rs.getDouble("price_per_day"));
+                    car.setCreatedAt(rs.getTimestamp("created_at"));
+                    car.setStatus(rs.getString("status"));
+                    car.setImageUrls(new ArrayList<>());
+                    car.setReviews(new ArrayList<>());
+                    carMap.put(carId, car);
+                }
+
+                // Add image (avoid duplicates)
+                String imageUrl = rs.getString("image_url");
+                if (imageUrl != null && !car.getImageUrls().contains(imageUrl)) {
+                    car.getImageUrls().add(imageUrl);
+                }
+
+                // Add review
+                int rating = rs.getInt("rating");
+                if (rating > 0) {
+                    ReviewDTO review = new ReviewDTO();
+                    review.setRating(rating);
+                    review.setComment(rs.getString("comment"));
+                    review.setReviewerName(rs.getString("reviewer_name"));
+                    car.getReviews().add(review);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to fetch favorite cars: " + e.getMessage());
+        }
+
+        return new ArrayList<>(carMap.values());
+    }
 
 }

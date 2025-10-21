@@ -111,5 +111,94 @@ public class sql {
     public static final String FIND_CAR_BY_ID="select * from crs.cars where id=?";
 
 
+    public static final String UPDATE_RENTAL_STATUS ="UPDATE crs.rentals SET status = ? WHERE id = ?";
+    public static final String CHECK_RENTAL_EXISTS = "select * from crs.rentals where id=?";
+    public static final String updateCarStatus = "UPDATE crs.cars SET status = ? WHERE id = (SELECT car_id FROM crs.rentals WHERE id = ?)";
+
+    public static final String SEARCH_CARS_QUERY = """
+    SELECT 
+        c.id AS car_id,
+        c.registration_no,
+        c.name,
+        c.type,
+        c.capacity,
+        c.fuel_capacity,
+        c.transmission,
+        c.description,
+        c.price_per_day,
+        c.created_at,
+        c.status,
+        ci.image_url,
+        r.rating,
+        r.comment,
+        u.full_name AS reviewer_name
+    FROM crs.cars c
+    LEFT JOIN crs.car_images ci ON c.id = ci.car_id
+    LEFT JOIN crs.reviews r ON c.id = r.car_id
+    LEFT JOIN crs.users u ON r.user_id = u.id
+    WHERE 
+        c.id NOT IN (
+            SELECT re.car_id 
+            FROM crs.rentals re 
+            WHERE (re.pickup_date, re.dropoff_date) OVERLAPS (?, ?)
+        )
+        AND (? IS NULL OR c.type = ?)
+        AND c.price_per_day BETWEEN ? AND ?
+        AND c.status = 'AVAILABLE'
+    ORDER BY c.price_per_day ASC
+""";
+
+
+    public static final String INSERT_FAVORITE_SQL =
+            "INSERT INTO crs.favorites (user_id, car_id) VALUES (?, ?)";
+    public static final String DELETE_FAVORITE_SQL =
+            "DELETE FROM crs.favorites WHERE user_id = ? AND car_id = ?";
+
+    public static final String viewFavoriteCars = """
+            SELECT c.id AS car_id, c.name, c.type, c.capacity, c.transmission,
+                   c.fuel_capacity, c.description, c.price_per_day,
+                   ci.image_url, ci.is_main,
+                   r.id AS review_id, r.rating, r.comment, r.created_at,
+                   u.full_name AS reviewer_name
+            FROM crs.favorites f
+            JOIN crs.cars c ON f.car_id = c.id
+            LEFT JOIN crs.car_images ci ON c.id = ci.car_id
+            LEFT JOIN crs.reviews r ON c.id = r.car_id
+            LEFT JOIN crs.users u ON r.user_id = u.id
+            WHERE f.user_id = ?
+            ORDER BY c.id, r.created_at DESC
+        """;
+
+    public static final String GET_FAVORITE_CARS_BY_USER = """
+    SELECT 
+        c.id AS car_id,
+        c.registration_no,
+        c.name,
+        c.type,
+        c.capacity,
+        c.fuel_capacity,
+        c.transmission,
+        c.description,
+        c.price_per_day,
+        c.created_at,
+        c.status,
+        ci.image_url,
+        r.rating,
+        r.comment,
+        u.full_name AS reviewer_name
+    FROM crs.favorites f
+    INNER JOIN crs.cars c ON f.car_id = c.id
+    LEFT JOIN crs.car_images ci ON c.id = ci.car_id
+    LEFT JOIN crs.reviews r ON c.id = r.car_id
+    LEFT JOIN crs.users u ON r.user_id = u.id
+    WHERE f.user_id = ?
+    ORDER BY c.created_at DESC
+""";
+
+    public static final String getRentalById = "SELECT id, car_id, user_id, pickup_date, dropoff_date, total_days, total_price, status FROM crs.rentals WHERE id = ?";
+
+    public static final String addFine = "INSERT INTO crs.fines (rental_id, fine_amount, reason) VALUES (?, ?, ?)";
+
+    public static final String cancelRental = "UPDATE crs.rentals SET status = 'CANCELLED' WHERE id = ?";
 
 }

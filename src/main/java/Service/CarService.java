@@ -1,10 +1,13 @@
 package Service;
 
+import DTO.CarDTO.CarDTO;
 import DTO.CarDTO.CarRequestDTO;
 import Enums.CarStatus;
 import Handler.AppException;
 import Repository.CarRepository;
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public class CarService {
@@ -73,5 +76,52 @@ public class CarService {
         carRequestDTO.setStatus(CarStatus.DELETED);
         return carRepository.updateCar(carRequestDTO,registrationNo);
     }
+
+    public List<CarDTO> searchCars(Timestamp pickupDate, Timestamp dropoffDate,
+                                   String carType, double minPrice, double maxPrice) throws AppException {
+
+        if (pickupDate == null || dropoffDate == null) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Pickup and dropoff dates are required.");
+        }
+
+        if (carType == null || carType.isEmpty()) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST,"Car type is required.");
+        }
+
+        if (minPrice < 0 || maxPrice <= 0 || minPrice > maxPrice) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST,"Invalid price range.");
+        }
+
+        return carRepository.searchAvailableCars(pickupDate, dropoffDate, carType, minPrice, maxPrice);
+    }
+
+    public boolean addFavorite(int userId, int carId) {
+        if (userId <= 0 || carId <= 0) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST,"Invalid userId or carId");
+        }
+       return carRepository.addFavorite(userId, carId);
+    }
+
+    public boolean removeFavorite(int userId, int carId) {
+        if (userId <= 0 || carId <= 0) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Invalid userId or carId");
+        }
+
+        boolean deleted = carRepository.removeFavorite(userId, carId);
+        if (!deleted) {
+            throw new AppException(HttpServletResponse.SC_NOT_FOUND, "Favorite not found for given user and car");
+        }
+
+        return true;
+    }
+
+    public List<CarDTO> getFavoriteCarsByUser(int userId) {
+        if (userId <= 0) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Invalid userId");
+        }
+        return carRepository.getFavoriteCarsByUser(userId);
+    }
+
+
 }
 
