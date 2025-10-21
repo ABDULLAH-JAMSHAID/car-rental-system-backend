@@ -9,7 +9,12 @@ public enum CarStatus {
     UNAVAILABLE,
     RESERVED,
     INACTIVE,
-    DELETED
+    DELETED,
+    PENDING,
+    APPROVED ,
+    REJECTED ,
+    RETURNED,
+    CANCELLED;
 
 
 }

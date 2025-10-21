@@ -2,12 +2,15 @@ package Repository;
 
 
 import Enums.CarStatus;
+import Handler.AppException;
 import Model.Car;
 import Model.Rental;
 import Utill.DBConnection;
 import Utill.sql;
+import jakarta.servlet.http.HttpServletResponse;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.*;
 
 public class RentalRepository {
@@ -57,5 +60,101 @@ public class RentalRepository {
             }
         }
         return null; // Not found
+    }
+
+    public boolean updateRentalStatus(int rentalId, CarStatus status) {
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.UPDATE_RENTAL_STATUS)) {
+
+            ps.setString(1, status.name());
+            ps.setInt(2, rentalId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database error while updating rental status: " + e.getMessage());
+        }
+    }
+
+    public boolean checkRentalExists(int rentalId) {
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.CHECK_RENTAL_EXISTS)) {
+
+            ps.setInt(1, rentalId);
+            ResultSet rs = ps.executeQuery();
+
+            return rs.next();
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database error while checking rental existence: " + e.getMessage());
+        }
+    }
+
+    public void updateCarStatus(int rentalId, CarStatus carStatus) {
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.updateCarStatus)) {
+
+            ps.setString(1, carStatus.name());
+            ps.setInt(2, rentalId);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Database error while updating car status: " + e.getMessage());
+        }
+    }
+
+    public Rental getRentalById(int rentalId) {
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.getRentalById)) {
+
+            ps.setInt(1, rentalId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Rental r = new Rental();
+                r.setId(rs.getInt("id"));
+                r.setCarId(rs.getInt("car_id"));
+                r.setUserId(rs.getInt("user_id"));
+                r.setPickupDate(rs.getTimestamp("pickup_date"));
+                r.setDropoffDate(rs.getTimestamp("dropoff_date"));
+                r.setTotalDays(rs.getInt("total_days"));
+                r.setTotalPrice(rs.getDouble("total_price"));
+                r.setStatus(rs.getString("status"));
+                return r;
+            }
+
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+
+    public void addFine(int rentalId, double amount, String reason) {
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.addFine)) {
+            ps.setInt(1, rentalId);
+            ps.setDouble(2, amount);
+            ps.setString(3, reason);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    public void cancelRental(int rentalId) {
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.cancelRental)) {
+            ps.setInt(1, rentalId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(500, "Error updating rental status: " + e.getMessage());
+        }
     }
 }
