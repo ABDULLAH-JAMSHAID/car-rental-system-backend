@@ -1,5 +1,8 @@
 package Controller.RentalManagement;
 
+import Annotation.RequiresPermission;
+import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Model.Rental;
 import Service.RentalService;
 import Utill.JsonResponse;
@@ -12,12 +15,13 @@ import java.io.IOException;
 
 
 @WebServlet("/api/rentals/book")
-public class BookRental extends HttpServlet {
+public class BookRental extends BaseServlet {
 
     private final RentalService rentalService = new RentalService();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    @RequiresPermission(Permissions.BOOK_RENTAL)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         Claims claims = (Claims) req.getAttribute("claims");

@@ -1,7 +1,9 @@
 package Controller.CustomerManagement;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
 import DTO.CustomerDTO.CustomerResponseDTO;
+import Enums.Permissions;
 import Service.CustomerService;
 import Utill.JsonResponse;
 import jakarta.servlet.ServletException;
@@ -16,6 +18,7 @@ public class GetCustomerProfile extends BaseServlet {
     private final CustomerService customerService = new CustomerService();
 
     @Override
+    @RequiresPermission(Permissions.GET_CUSTOMER_PROFILE)
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

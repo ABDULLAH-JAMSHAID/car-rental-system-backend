@@ -1,6 +1,9 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
+import Controller.Auth.BaseServlet;
 import DTO.RentalDTO.ReturnSummaryDTO;
+import Enums.Permissions;
 import Service.RentalService;
 import Utill.JsonResponse;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,11 +14,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet("/api/customer/rentals/return/*")
-public class ReturnCarServlet extends HttpServlet {
+public class ReturnCarServlet extends BaseServlet {
 
     private final RentalService rentalService = new RentalService();
 
     @Override
+    @RequiresPermission(Permissions.RETURN_CAR)
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
             // rentalId URL se nikalo

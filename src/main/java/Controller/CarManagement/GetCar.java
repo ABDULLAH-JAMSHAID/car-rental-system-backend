@@ -1,7 +1,9 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
 import DTO.CarDTO.CarRequestDTO;
+import Enums.Permissions;
 import Service.CarService;
 import Utill.JsonResponse;
 import jakarta.servlet.ServletException;
@@ -15,6 +17,7 @@ public class GetCar extends BaseServlet {
     private final CarService carService=new CarService();
 
     @Override
+    @RequiresPermission(Permissions.GET_CAR_BY_ID)
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         String pathInfo=req.getPathInfo();

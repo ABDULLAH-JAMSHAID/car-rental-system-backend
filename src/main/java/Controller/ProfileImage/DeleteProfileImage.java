@@ -1,6 +1,8 @@
 package Controller.ProfileImage;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Service.ProfileImageService;
 import Utill.JsonResponse;
 import jakarta.servlet.ServletException;
@@ -15,6 +17,7 @@ public class DeleteProfileImage extends BaseServlet {
     private final ProfileImageService userImageService = new ProfileImageService();
 
     @Override
+    @RequiresPermission(Permissions.DELETE_PROFILE_IMAGE)
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

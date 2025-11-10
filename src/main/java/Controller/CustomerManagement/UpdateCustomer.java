@@ -1,7 +1,9 @@
 package Controller.CustomerManagement;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
 import DTO.CustomerDTO.CustomerRequestDTO;
+import Enums.Permissions;
 import Service.CustomerService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ public class UpdateCustomer extends BaseServlet {
     private final ObjectMapper objectMapper=new ObjectMapper();
 
     @Override
+    @RequiresPermission(Permissions.UPDATE_CUSTOMER_PROFILE)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         String pathInfo=req.getPathInfo();

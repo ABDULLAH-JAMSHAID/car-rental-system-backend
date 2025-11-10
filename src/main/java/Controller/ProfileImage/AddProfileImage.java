@@ -1,6 +1,8 @@
 package Controller.ProfileImage;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Service.ProfileImageService;
 import Utill.JsonResponse;
 import jakarta.servlet.ServletException;
@@ -17,6 +19,7 @@ public class AddProfileImage extends BaseServlet {
 
 private final ProfileImageService profileImageService=new ProfileImageService();
     @Override
+    @RequiresPermission(Permissions.ADD_PROFILE_IMAGE)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

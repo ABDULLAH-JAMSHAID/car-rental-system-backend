@@ -1,6 +1,5 @@
 package Controller.Auth;
 
-
 import Annotation.RequiresPermission;
 import Enums.Permissions;
 import Handler.AppException;
@@ -11,19 +10,19 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class BaseServlet extends HttpServlet {
 
-    private final AuthRepository authRepository=new AuthRepository();
-
+    private final AuthRepository authRepository = new AuthRepository();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            // Method name banani (doGet, doPost, etc.)
+            // 🔹 Method name build (doGet, doPost, etc.)
             String methodName = "do" + req.getMethod().substring(0, 1).toUpperCase()
                     + req.getMethod().substring(1).toLowerCase();
 
@@ -34,7 +33,7 @@ public abstract class BaseServlet extends HttpServlet {
             );
             method.setAccessible(true);
 
-            // 🔹 Agar @RequiresPermission annotation lagi hai
+            // 🔹 Agar @RequiresPermission lagi hai to check karo
             if (method.isAnnotationPresent(RequiresPermission.class)) {
                 RequiresPermission annotation = method.getAnnotation(RequiresPermission.class);
                 Permissions requiredPermission = annotation.value();
@@ -52,40 +51,44 @@ public abstract class BaseServlet extends HttpServlet {
                 }
 
                 int userId = user_id.intValue();
+                int roleId=authRepository.findRoleIdByUserId(userId);
 
-                if (authRepository.userHasPermission(userId, requiredPermission)) {
+                if (authRepository.userHasPermission(roleId, requiredPermission)) {
                     method.invoke(this, req, resp);
                 } else {
                     JsonResponse.forbidden(resp, "Access Denied: You don't have permission to access this resource.");
                 }
             } else {
-                // Agar permission check required nahi hai
+                // Agar permission required nahi hai
                 method.invoke(this, req, resp);
             }
 
         } catch (NoSuchMethodException e) {
-            // Agar method support hi nahi hota (default handling)
             super.service(req, resp);
 
         } catch (InvocationTargetException e) {
-            // Agar method ke andar exception aya
+            // 🔹 Agar controller method ke andar koi exception throw hui
             Throwable targetEx = e.getTargetException();
             handleCustomException(targetEx, resp);
 
         } catch (Exception e) {
-            // Fallback for any other errors
+            // 🔹 Fallback for any unexpected error
             handleCustomException(e, resp);
         }
     }
 
-    // 🔹 Centralized Exception Handling
+    // ✅ Centralized JSON Exception Handling
     private void handleCustomException(Throwable ex, HttpServletResponse resp) throws IOException {
         if (ex instanceof AppException appEx) {
-            // Agar tumne AppException throw kiya tha (custom status code ke sath)
+            // 🔹 Custom AppException → clean JSON format
             JsonResponse.error(resp, appEx.getStatusCode(), appEx.getMessage());
+
+        } else if (ex instanceof IllegalArgumentException) {
+            JsonResponse.error(resp, 400, ex.getMessage());
+
         } else {
-            // Agar koi unexpected exception aya
-            JsonResponse.serverError(resp, "Unexpected error: " + ex.getMessage());
+            // 🔹 Unexpected exception (fallback)
+            JsonResponse.serverError(resp, "Internal Server Error: " + ex.getMessage());
         }
     }
 }

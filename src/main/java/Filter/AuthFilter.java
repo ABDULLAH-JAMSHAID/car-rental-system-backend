@@ -30,8 +30,7 @@ public class AuthFilter implements Filter {
                 || path.endsWith("/api/refresh")
                 || path.endsWith("/api/verify-otp")
                 || path.endsWith("/api/logout")
-                || path.endsWith("/api/resend-otp")|| path.endsWith("/api/addCar")
-                || path.endsWith("/api/updateCar/*")) {
+                || path.endsWith("/api/resend-otp")) {
             chain.doFilter(request, response);
             return;
         }

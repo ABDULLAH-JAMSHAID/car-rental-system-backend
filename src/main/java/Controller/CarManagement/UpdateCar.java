@@ -1,7 +1,9 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
 import DTO.CarDTO.CarRequestDTO;
+import Enums.Permissions;
 import Service.CarService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ public class UpdateCar extends BaseServlet {
     private final CarService carService=new CarService();
 
     @Override
+    @RequiresPermission(Permissions.UPDATE_CAR_DETAILS)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         CarRequestDTO body= objectMapper.readValue(req.getInputStream(), CarRequestDTO.class);
