@@ -1,7 +1,9 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
 import DTO.CarDTO.CarRequestDTO;
+import Enums.Permissions;
 import Service.CarService;
 import Utill.JsonResponse;
 import jakarta.servlet.ServletException;
@@ -16,6 +18,7 @@ public class DeleteCar extends BaseServlet {
     private final CarService carService=new CarService();
 
     @Override
+    @RequiresPermission(Permissions.DELETE_CAR)
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         String pathInfo=req.getPathInfo();

@@ -8,7 +8,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository=new CustomerRepository();
 
-    public CustomerRequestDTO updateCustomer(CustomerRequestDTO body, String customerId) {
+    public CustomerRequestDTO updateCustomer(CustomerRequestDTO body, int customerId) {
 
         CustomerRequestDTO customer=customerRepository.findById(customerId);
 

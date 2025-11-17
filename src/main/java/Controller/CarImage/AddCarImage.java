@@ -1,6 +1,8 @@
 package Controller.CarImage;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Service.CarImageService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -17,6 +19,7 @@ public class AddCarImage extends BaseServlet {
     private final CarImageService carImageService=new CarImageService();
 
     @Override
+    @RequiresPermission(Permissions.ADD_CAR_IMAGE)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

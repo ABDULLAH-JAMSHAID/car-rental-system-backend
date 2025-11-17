@@ -1,6 +1,8 @@
 package Controller.CarImage;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Service.CarImageService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +17,7 @@ public class SetMainImage extends BaseServlet {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
+    @RequiresPermission(Permissions.SET_MAIN_CAR_IMAGE)
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> body = mapper.readValue(req.getInputStream(), Map.class);
         int carId = (int) body.get("carId");

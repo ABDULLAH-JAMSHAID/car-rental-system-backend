@@ -1,7 +1,12 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
+import Controller.Auth.BaseServlet;
 import DTO.RentalDTO.ReturnSummaryDTO;
+import Enums.Permissions;
+import Repository.AuthRepository;
 import Service.RentalService;
+import Utill.GetUserIdOfCurrentLogin;
 import Utill.JsonResponse;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,11 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet("/api/customer/rentals/return/*")
-public class ReturnCarServlet extends HttpServlet {
+public class ReturnCarServlet extends BaseServlet {
 
     private final RentalService rentalService = new RentalService();
+    private final AuthRepository authRepository=new AuthRepository();
 
     @Override
+    @RequiresPermission(Permissions.RETURN_CAR)
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
             // rentalId URL se nikalo
@@ -26,6 +33,14 @@ public class ReturnCarServlet extends HttpServlet {
         }
 
         int rentalId = Integer.parseInt(pathInfo.substring(1));
+        int loginUserId= GetUserIdOfCurrentLogin.getUserIdFromRequest(req);
+
+        String role=authRepository.getRoleByUserId(loginUserId);
+
+        if (role!="ADMIN" && loginUserId!=rentalId){
+            JsonResponse.forbidden(resp, "You don't have permission to do this task");
+            return;
+        }
 
             // Call service layer
          ReturnSummaryDTO summaryDTO= rentalService.returnCar(rentalId);

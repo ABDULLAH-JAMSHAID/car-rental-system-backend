@@ -99,7 +99,8 @@ public class AuthService {
         if (Role==null){
             throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"User Role Not Found");
         }
-        List<String> permissions = authRepository.getUserPermissions(user.getId());
+        Integer userId=authRepository.findRoleIdByUserId(user.getId());
+        List<String> permissions = authRepository.getUserPermissions(userId);
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("user_id", user.getId());

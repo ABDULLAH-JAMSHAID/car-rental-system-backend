@@ -2,6 +2,8 @@ package Service;
 
 import DTO.CarDTO.CarDTO;
 import DTO.CarDTO.CarRequestDTO;
+import DTO.CarDTO.ReviewRequestDTO;
+import DTO.CarDTO.ReviewResponseDTO;
 import Enums.CarStatus;
 import Handler.AppException;
 import Repository.CarRepository;
@@ -120,6 +122,36 @@ public class CarService {
             throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Invalid userId");
         }
         return carRepository.getFavoriteCarsByUser(userId);
+    }
+
+    public boolean addReview(Integer user_id, ReviewRequestDTO review) throws AppException {
+        // 🔹 Validation
+        validateReviewInput(review.getCarId(), review);
+
+        // 🔹 Save review
+       return carRepository.addReview(review,user_id);
+    }
+
+    private void validateReviewInput(Integer carId, ReviewRequestDTO review) throws AppException {
+        if (carId == null || carId <= 0) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Car ID is required");
+        }
+
+        if (review.getRating() == null || review.getRating() < 1 || review.getRating() > 5) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Rating must be between 1 and 5");
+        }
+
+        if (review.getComment() == null || review.getComment().trim().isEmpty()) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Comment is required");
+        }
+    }
+
+    public List<ReviewResponseDTO> getReviewsByCarId(int carId) throws AppException {
+        if (carId <= 0) {
+            throw new AppException(HttpServletResponse.SC_BAD_REQUEST, "Invalid car ID");
+        }
+
+        return carRepository.getReviewsByCarId(carId);
     }
 
 

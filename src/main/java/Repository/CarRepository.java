@@ -1,8 +1,6 @@
 package Repository;
 
-import DTO.CarDTO.CarDTO;
-import DTO.CarDTO.CarRequestDTO;
-import DTO.CarDTO.ReviewDTO;
+import DTO.CarDTO.*;
 import Enums.CarStatus;
 import Handler.AppException;
 import Utill.DBConnection;
@@ -359,4 +357,47 @@ public class CarRepository {
         return new ArrayList<>(carMap.values());
     }
 
+    public boolean addReview(ReviewRequestDTO review,int user_id) throws AppException {
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.INSERT_REVIEW)) {
+
+            ps.setInt(1, review.getCarId());
+            ps.setInt(2,user_id);
+            ps.setInt(3, review.getRating());
+            ps.setString(4, review.getComment());
+
+            int rows=ps.executeUpdate();
+            if (rows>0){
+                return true;
+            }
+            else return false;
+        } catch (Exception e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to add review: " + e.getMessage());
+        }
+    }
+
+    public List<ReviewResponseDTO> getReviewsByCarId(int carId) throws AppException {
+        List<ReviewResponseDTO> reviews = new ArrayList<>();
+
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.GET_REVIEWS_BY_CAR_ID)) {
+
+            ps.setInt(1, carId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ReviewResponseDTO dto = new ReviewResponseDTO();
+                dto.setRating(rs.getInt("rating"));
+                dto.setComment(rs.getString("comment"));
+                dto.setUserName(rs.getString("user_name"));
+                dto.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                reviews.add(dto);
+            }
+
+            return reviews;
+
+        } catch (SQLException e) {
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error while fetching reviews");
+        }
+    }
 }

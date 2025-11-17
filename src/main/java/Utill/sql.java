@@ -148,6 +148,45 @@ public class sql {
     ORDER BY c.price_per_day ASC
 """;
 
+    public static final String rentalHistory = """
+                SELECT
+                    r.id AS rental_id,
+                    r.pickup_date,
+                    r.dropoff_date,
+                    r.pickup_location,
+                    r.total_days,
+                    r.total_price,
+                    r.status AS rental_status,
+                    r.created_at AS rental_created_at,
+
+                    c.id AS car_id,
+                    c.registration_no,
+                    c.name AS car_name,
+                    c.type AS car_type,
+                    c.capacity,
+                    c.fuel_capacity,
+                    c.transmission,
+                    c.description,
+                    c.price_per_day,
+                    c.status AS car_status,
+                    c.created_at AS car_created_at,
+
+                    STRING_AGG(DISTINCT ci.image_url, ',') AS image_urls,
+                    STRING_AGG(
+                        DISTINCT CONCAT(rw.rating, '|', rw.comment, '|', u.full_name, '|', rw.created_at),
+                        ';'
+                    ) AS review_data
+
+                FROM crs.rentals r
+                JOIN crs.cars c ON r.car_id = c.id
+                LEFT JOIN crs.car_images ci ON ci.car_id = c.id
+                LEFT JOIN crs.reviews rw ON rw.car_id = c.id
+                LEFT JOIN crs.users u ON rw.user_id = u.id
+                WHERE r.user_id = ?
+                GROUP BY r.id, c.id
+                ORDER BY r.created_at DESC
+                """;
+
 
     public static final String INSERT_FAVORITE_SQL =
             "INSERT INTO crs.favorites (user_id, car_id) VALUES (?, ?)";
@@ -200,5 +239,117 @@ public class sql {
     public static final String addFine = "INSERT INTO crs.fines (rental_id, fine_amount, reason) VALUES (?, ?, ?)";
 
     public static final String cancelRental = "UPDATE crs.rentals SET status = 'CANCELLED' WHERE id = ?";
+
+    public static final String getPendingRentals = """
+    SELECT\s
+                                              r.id AS rental_id,
+                                              r.pickup_location,
+                                              r.pickup_date,
+                                              r.dropoff_date,
+                                              r.total_days,
+                                              r.total_price,
+                                              r.status,
+                                              r.created_at,
+            
+                                              c.id AS car_id,
+                                              c.name AS car_name,
+                                              c.registration_no,
+                                              c.type AS car_type,
+                                              c.capacity,
+                                              c.fuel_capacity,
+                                              c.transmission,
+                                              c.description AS car_description,
+                                              c.status AS car_status,
+                                              c.price_per_day,
+                                              c.created_at AS car_created_at,
+            
+                                              u.id AS user_id,
+                                              u.full_name,
+                                              u.email,
+                                              u.phone,
+                                              u.address,
+                                              u.gender,
+                                              u.license_number,
+                                              u.is_verified,
+                                              u.is_active,
+                                              u.created_at AS user_created_at
+                                          FROM crs.rentals r
+                                          JOIN crs.cars c ON r.car_id = c.id
+                                          JOIN crs.users u ON r.user_id = u.id
+                                          WHERE r.status = ?
+                                          ORDER BY r.created_at DESC;
+            
+""";
+
+
+    public static final String INSERT_REVIEW = """
+        INSERT INTO crs.reviews (car_id, user_id, rating, comment, created_at)
+        VALUES (?, ?, ?, ?, NOW())
+    """;
+
+    public static final String GET_REVIEWS_BY_CAR_ID = """
+        SELECT 
+            r.rating,
+            r.comment,
+            r.created_at,
+            u.full_name AS user_name
+        FROM crs.reviews r
+        JOIN crs.users u ON r.user_id = u.id
+        WHERE r.car_id = ?
+        ORDER BY r.created_at DESC
+    """;
+
+    public static final String getOverdueRentals = """
+        SELECT 
+            r.id AS rental_id,
+            c.name AS car_name,
+            u.full_name AS user_name,
+            r.dropOff_date,
+            (CURRENT_DATE - r.dropOff_date) AS days_overdue,
+            ((CURRENT_DATE - r.dropOff_date) * c.price_per_day * 0.10) AS estimated_penalty
+        FROM crs.rentals r
+        JOIN crs.cars c ON r.car_id = c.id
+        JOIN crs.users u ON r.user_id = u.id
+        WHERE r.dropOff_date < CURRENT_DATE
+          AND r.status = 'RENTED';
+    """;
+
+    public static final  String totalRentalsQuery = "SELECT COUNT(*) FROM crs.rentals WHERE user_id = ?";
+    public static final String activeRentalsQuery = "SELECT COUNT(*) FROM crs.rentals WHERE user_id = ? AND status = 'RENTED'";
+    public static final String totalSpentQuery = "SELECT COALESCE(SUM(total_price), 0) FROM crs.rentals WHERE user_id = ?";
+    public static final String lastCarQuery = """
+        SELECT c.name, r.dropoff_date, c.price_per_day
+        FROM crs.rentals r
+        JOIN crs.cars c ON r.car_id = c.id
+        WHERE r.user_id = ?
+        ORDER BY r.dropoff_date DESC
+        LIMIT 1
+    """;
+
+    public static final String totalCarsQuery = "SELECT COUNT(*) FROM crs.cars";
+    public static final String totalUsersQuery = "SELECT COUNT(*) FROM crs.users";
+    public static final String totalRentalQuery = "SELECT COUNT(*) FROM crs.rentals";
+    public static final String activeRentalQuery = "SELECT COUNT(*) FROM crs.rentals WHERE status = 'RENTED'";
+    public static final String overdueRentalsQuery = "SELECT COUNT(*) FROM crs.rentals WHERE dropoff_date < CURRENT_DATE AND status = 'RENTED'";
+    public static final String totalRevenueQuery = "SELECT COALESCE(SUM(total_price), 0) FROM crs.rentals";
+
+    public static final String mostRentedCarQuery = """
+            SELECT c.name 
+            FROM crs.rentals r
+            JOIN crs.cars c ON r.car_id = c.id
+            GROUP BY c.id, c.name
+            ORDER BY COUNT(r.id) DESC
+            LIMIT 1
+        """;
+
+    public static final String topRatedCarQuery = """
+            SELECT c.name
+            FROM crs.reviews rv
+            JOIN crs.cars c ON rv.car_id = c.id
+            GROUP BY c.id, c.name
+            ORDER BY AVG(rv.rating) DESC
+            LIMIT 1
+        """;
+    public static final String findRoleIdByUserId="SELECT role_id FROM crs.user_roles WHERE user_id = ?";
 
 }

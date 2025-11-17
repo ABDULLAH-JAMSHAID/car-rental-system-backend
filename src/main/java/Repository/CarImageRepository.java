@@ -1,5 +1,6 @@
 package Repository;
 
+import DTO.CarDTO.ReviewRequestDTO;
 import Handler.AppException;
 import Model.CarImage;
 import Utill.DBConnection;
@@ -119,5 +120,7 @@ public class CarImageRepository {
             throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
         }
     }
+
+
 
 }

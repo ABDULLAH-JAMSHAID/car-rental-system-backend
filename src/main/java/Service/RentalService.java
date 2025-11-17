@@ -1,14 +1,13 @@
 package Service;
 
 
-import DTO.RentalDTO.CancelRequestDTO;
-import DTO.RentalDTO.CancelResponseDTO;
-import DTO.RentalDTO.ReturnSummaryDTO;
+import DTO.RentalDTO.*;
 import Enums.CarStatus;
 import Handler.AppException;
 import Model.Car;
 import Model.Rental;
 import Repository.RentalRepository;
+import Utill.JsonResponse;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
@@ -18,6 +17,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 
 public class RentalService {
@@ -67,17 +67,15 @@ public class RentalService {
         }
         if (status==CarStatus.APPROVED){
             rentalRepo.updateRentalStatus(rentalId,CarStatus.APPROVED);
-            rentalRepo.updateCarStatus(rentalId,CarStatus.RENTED);
             return true;
         }
         if (status==CarStatus.REJECTED){
             rentalRepo.updateRentalStatus(rentalId,CarStatus.REJECTED);
-            rentalRepo.updateCarStatus(rentalId,CarStatus.AVAILABLE);
             return true;
         }
         if (status==CarStatus.RETURNED){
             rentalRepo.updateRentalStatus(rentalId,CarStatus.RETURNED);
-            rentalRepo.updateCarStatus(rentalId,CarStatus.AVAILABLE);
+
             return true;
         }
 
@@ -144,7 +142,7 @@ public class RentalService {
                 .toLocalDateTime();
 
 
-        
+
         if (pickup.isBefore(now)) {
             throw new AppException(400, "Cannot cancel. Pickup time has already passed.");
         }
@@ -165,5 +163,35 @@ public class RentalService {
         );
     }
 
+
+    public List<RentalResponseDTO> getUserRentals(int userId) throws AppException {
+        List<RentalResponseDTO> rentals = rentalRepo.getRentalHistoryByUserId(userId);
+
+        if (rentals==null || rentals.isEmpty() ) {
+
+        }
+        return rentals;
+    }
+
+    public List<PendingRentalDTO> getPendingRentals(CarStatus status) throws AppException {
+        return rentalRepo.getPendingRentals(status);
+    }
+
+    public List<OverdueRentalDTO> getOverdueRentals() {
+
+            return rentalRepo.getOverdueRentals();
+
+    }
+
+    public CustomerDashboardDTO getCustomerDashboard(int userId) {
+
+            return rentalRepo.getCustomerDashboard(userId);
+
+    }
+
+    public AdminDashboardDTO getDashboardStats() {
+
+            return rentalRepo.getDashboardStats();
+    }
 
 }

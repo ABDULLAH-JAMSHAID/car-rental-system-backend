@@ -220,4 +220,20 @@ public class AuthRepository {
 
         return userPermissions.contains(requiredPermission.name().toUpperCase());
     }
+    public int findRoleIdByUserId(int userId){
+
+        try(Connection connection=ds.getConnection();
+        PreparedStatement preparedStatement=connection.prepareStatement(sql.findRoleIdByUserId);){
+            preparedStatement.setInt(1,userId);
+            ResultSet rs=preparedStatement.executeQuery();
+
+            if (rs.next()){
+                return rs.getInt("role_id");
+            }
+            return -1;
+
+        }catch (SQLException e){
+            throw new AppException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Database error: "+e.getMessage());
+        }
+    }
 }

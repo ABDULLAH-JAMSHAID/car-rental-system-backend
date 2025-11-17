@@ -1,6 +1,9 @@
 package Controller.CarManagement;
 
+import Annotation.RequiresPermission;
+import Controller.Auth.BaseServlet;
 import DTO.CarDTO.FavoriteDTO;
+import Enums.Permissions;
 import Service.CarService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,12 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet("/api/favorites/add")
-public class AddFavoriteCar extends HttpServlet {
+public class AddFavoriteCar extends BaseServlet {
 
     private final CarService carService=new CarService();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
+    @RequiresPermission(Permissions.ADD_CAR_TO_FAVORITES)
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

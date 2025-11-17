@@ -1,6 +1,8 @@
 package Controller.CarImage;
 
+import Annotation.RequiresPermission;
 import Controller.Auth.BaseServlet;
+import Enums.Permissions;
 import Service.CarImageService;
 import Utill.JsonResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ public class DeleteCarImage extends BaseServlet {
     private final CarImageService carImageService = new CarImageService();
 
     @Override
+    @RequiresPermission(Permissions.DELETE_CAR_IMAGE)
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
