@@ -17,11 +17,11 @@ public class CustomerRepository {
     private final DataSource ds= DBConnection.getDataSource();
 
 
-    public CustomerRequestDTO findById(String customerId) {
+    public CustomerRequestDTO findById(int customerId) {
 
         try(Connection connection=ds.getConnection();
             PreparedStatement preparedStatement=connection.prepareStatement(sql.findById)){
-            preparedStatement.setString(1,customerId);
+            preparedStatement.setInt(1,customerId);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
